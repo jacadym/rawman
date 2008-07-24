@@ -1,0 +1,168 @@
+<html>
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="charset"      content="utf-8" />
+<link rel="stylesheet" href="@@skins@@/style.css" type="text/css" />
+<script type="text/javascript" language="javascript" src="@@skins@@/prototype/prototype.js"></script>
+<script type="text/javascript" language="javascript" src="@@skins@@/scriptaculous/scriptaculous.js?load=effects"></script>
+<script type="text/javascript">
+// <![CDATA[
+var imgID;
+var imgDir = '@@imgdir@@/';
+
+function getFormParams() {
+	var parEv  = $('form-ev').value;
+	var parBal = $('form-balance').value;
+	var parBri = $('form-brightness').value;
+	var parGam = $('form-gamma').value;
+	var parRot = $('form-rotate').value;
+	var parNoi = $('form-noise').value;
+	return parEv + ',' + parBal + ',' + parBri + ',' + parGam + ',' + parRot + ',' + parNoi;
+}
+
+function selImg(imgName) {
+
+	Element.hide('image-box');
+
+	if (!$('bigimage')) {
+		var bigImage = document.createElement('img');
+		bigImage.setAttribute('id','bigimage');
+		bigImage.style.display = 'none';
+		$('image-box').appendChild(bigImage);
+		Element.show('bigimage');
+	}
+
+	var imgsrc = imgDir + imgName + '.jpg';
+	var select = document.getElementsByClassName('select');
+	select.each(function(el) { if (Element.hasClassName(el, 'thumbnail')) Element.removeClassName(el, 'select'); });
+	Element.addClassName($('thumb-' + imgName), 'select');
+
+	var imgPreloader = new Image();
+	imgPreloader.onload = function() {
+		$('bigimage').src = imgsrc;
+		new Effect.Appear('image-box', { duration: 0.5, queue: 'end' });
+		imgID = imgName;
+		rmSendReq('info');
+	}
+	imgPreloader.src = imgsrc;
+}
+
+function editImg() {
+	var imgsrc = imgDir + 'edit/' + getFormParams() + '/' + imgID + '.jpg';
+
+	var imgPreloader = new Image();
+	imgPreloader.onload = function() {
+		$('bigimage').src = imgsrc;
+	}
+	imgPreloader.src = imgsrc;
+}
+
+function applyImg() {
+	var req = new Ajax.Request(imgDir + 'apply/' + getFormParams() + '/' + imgID, {
+		method: 'post',
+		onSuccess: function(req) { rmSuccReq(req); },
+	});
+}
+
+function rmSendReq(what) {
+	var req = new Ajax.Request(imgDir + what + '/' + imgID, {
+		method: 'post',
+		onSuccess: function(req) { rmSuccReq(req); },
+	});
+}
+
+function rmSuccReq(req) {
+	var ret = req.responseText;
+	$('edit-box').innerHTML = ret;
+}
+
+function rate(obj) {
+	var lis  = $$('#edit-box ul.rate li.rate');
+	var rate = 0;
+	var sel  = 0;
+	for (var i = 0; i < lis.length; i++) {
+		if (Element.hasClassName(lis[i], 'select')) rate = i + 1;
+		if (lis[i] == obj) sel = i + 1;
+		Element.removeClassName(lis[i], 'select');
+	}
+	if (rate == sel) rate = 0; else rate = sel;
+	if (rate > 0) {
+		$A(lis).slice(0, rate).each(function(el) {Element.addClassName(el, 'select');});
+	}
+	rmSendReq('rate/' + rate);
+}
+
+function color(obj) {
+	var lis = $$('#edit-box ul.color li');
+	for (var i = 0; i < lis.length; i++) {
+		if (lis[i] == obj) {
+			if (Element.hasClassName(lis[i], 'select')) {
+				Element.removeClassName(lis[i], 'select');
+				rmSendReq('color/none');
+			}
+			else {
+				rmSendReq('color/' + lis[i].className);
+				Element.addClassName(lis[i], 'select');
+			}
+		}
+		else {
+			Element.removeClassName(lis[i], 'select');
+		}
+	}
+}
+
+function wb(obj) {
+	var lis = $$('#edit-box ul.wb li.wb');
+	for (var i = 0; i < lis.length; i++) {
+		if (lis[i] == obj) {
+			Element.addClassName(lis[i], 'select');
+			var wb;
+			for (var a = 0; a < lis[i].attributes.length; a++) {
+				if (lis[i].attributes[a].nodeName == 'value') {
+					wb = lis[i].attributes[a].nodeValue;
+				}
+			}
+			$('form-balance').value = wb;
+		}
+		else {
+			Element.removeClassName(lis[i], 'select');
+		}
+	}
+}
+
+function rotate(obj) {
+	var lis = $$('#edit-box ul.rotate li.rotate');
+	for (var i = 0; i < lis.length; i++) {
+		if (lis[i] == obj) {
+			var rotate = 'none';
+			if (Element.hasClassName(lis[i], 'select')) {
+				Element.removeClassName(lis[i], 'select');
+			}
+			else {
+				Element.addClassName(lis[i], 'select');
+				for (var a = 0; a < lis[i].attributes.length; a++) {
+					if (lis[i].attributes[a].nodeName == 'value') {
+						rotate = lis[i].attributes[a].nodeValue;
+					}
+				}
+			}
+			$('form-rotate').value = rotate;
+		}
+		else {
+			Element.removeClassName(lis[i], 'select');
+		}
+	}
+}
+
+// ]]>
+</script>
+<body>
+
+<div class="thumbnails">
+@@thumbs@@
+</div>
+
+<div id="edit-box"></div>
+<div id="image-box"></div>
+
+</body>
+</html>
