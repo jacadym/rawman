@@ -49,7 +49,7 @@ function selImg(imgName, dir) {
 }
 
 function editImg() {
-	var imgsrc = imgDir + 'edit/' + getFormParams() + '/' + imgID + '.jpg';
+	var imgsrc = imgDir + dirID + '/edit/' + getFormParams() + '/' + imgID + '.jpg';
 
 	var imgPreloader = new Image();
 	imgPreloader.onload = function() {
@@ -59,7 +59,7 @@ function editImg() {
 }
 
 function applyImg() {
-	var req = new Ajax.Request(imgDir + 'apply/' + getFormParams() + '/' + imgID, {
+	var req = new Ajax.Request(imgDir + dirID + '/apply/' + getFormParams() + '/' + imgID, {
 		method: 'post',
 		onSuccess: function(req) { rmSuccReq(req); },
 	});

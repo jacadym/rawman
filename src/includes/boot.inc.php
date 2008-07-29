@@ -70,6 +70,7 @@ function rawman_getrawfile($pic) {
 	if (count($files)) {
 		$rawfile = array_shift($files);
 	}
+	error_log(sprintf("RawFile:%s:pic:%s:\n", $rawfile, $pic), 3, '/tmp/rawman.log');
 	return $rawfile;
 }
 

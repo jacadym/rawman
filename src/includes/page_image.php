@@ -50,6 +50,8 @@ function rawman_editimage($conv, $pic) {
 		'year'   => '20'.$el['year'],
 		'number' => $el['number']
 	);
+	$raw  = rawman_getrawfile($pic);
+	$info = pathinfo($raw);
 	if (!is_file($image)) {
 		/*
 		** Analiza parametrów
@@ -61,11 +63,15 @@ function rawman_editimage($conv, $pic) {
 		}
 		$opt['dcraw']   .= ' -h -b '. RetDefault($par_brightness, '1.33');
 		if (in_array($par_rotate, array('left','right'))) {
-			$opt['dcraw'] .= ' -t '. ($par_rotate == 'left' ? 270 : 90);
+			if ($info['extension'] == 'jpg') {
+				$opt['cnvpre'] .= ' -rotate '. ($par_rotate == 'left' ? 270 : 90);
+			}
+			else {
+				$opt['dcraw'] .= ' -t '. ($par_rotate == 'left' ? 270 : 90);
+			}
 		}
 		$opt['cnvpre']  .= ' -shave 4x4 -gamma '. RetDefault($par_gamma, '1.15');
 		$opt['cnvpost'] .= ' -unsharp 3x3+0.3+0';
-		$raw = rawman_getrawfile($pic);
 		rawman_createimage($raw, $img, $opt);
 	}
 	rawman_showpicture($img);
@@ -75,23 +81,37 @@ function rawman_applyimage($conv, $pic) {
 
 	$dir = rawman_getpicdir($pic);
 	$img = rawman_mkdir(array($dir, 'image', IMAGE_SIZE)) . $pic .'.jpg';
+	$stk = rawman_mkdir(array($dir, 'stack')) . $pic .'.png';
 	$thu = rawman_mkdir(array($dir, 'thumb')) . $pic .'.png';
 	$par = rawman_mkdir(array($dir, 'param')) . $pic .'.txt';
 	$opt = rawman_convparams($par);
 
 	@unlink($par);
+	@unlink($stk);
 	@unlink($img);
 	@unlink($thu);
 
 	list($par_ev, $par_balance, $par_brightness, $par_gamma, $par_rotate, $par_noise) = split(',', $conv);
 
-	$opt['dcraw']   = rawman_get_dcraw_wb($par_balance).' -h -b '. RetDefault($par_brightness, '1.33');
+	$opt['dcraw']   = '';
+	$opt['cnvpre']  = '';
+	$opt['cnvpost'] = '';
+
+	$raw  = rawman_getrawfile($pic);
+	$info = pathinfo($raw);
+
+	$opt['dcraw']  .= rawman_get_dcraw_wb($par_balance).' -h -b '. RetDefault($par_brightness, '1.33');
 	if (in_array($par_rotate, array('left','right'))) {
-		$opt['dcraw'] .= ' -t '. ($par_rotate == 'left' ? 270 : 90);
+		if ($info['extension'] == 'jpg') {
+			$opt['cnvpre'] .= ' -rotate '. ($par_rotate == 'left' ? 270 : 90);
+		}
+		else {
+			$opt['dcraw'] .= ' -t '. ($par_rotate == 'left' ? 270 : 90);
+		}
 	}
-	$opt['cnvpre']  = ' -shave 4x4 -gamma '. RetDefault($par_gamma, '1.15');
-	$opt['cnvpost'] = ' -unsharp 3x3+0.3+0';
-	$opt['wb']      = $par_balance;
+	$opt['cnvpre']  .= ' -shave 4x4 -gamma '. RetDefault($par_gamma, '1.15');
+	$opt['cnvpost'] .= ' -unsharp 3x3+0.3+0';
+	$opt['wb']       = $par_balance;
 
 	rawman_convparams($par, $opt);
 }
@@ -145,6 +165,9 @@ function rawman_editbox($pic) {
 	if (preg_match('/\-t\s+(\d+)\b/', $opt['dcraw'], $m)) {
 		$opt['rotate'] = $m[1] == 270 ? 'left' : 'right';
 	}
+	elseif (preg_match('/\-rotate\s+(\d+)\b/', $opt['cnvpre'], $m)) {
+		$opt['rotate'] = $m[1] == 270 ? 'left' : 'right';
+	}
 
 	$arr_ev = array(
 		'-2.00', '-1.66', '-1.50', '-1.33', '-1.00', '-0.66', '-0.50', '-0.33',
@@ -168,7 +191,6 @@ function rawman_editbox($pic) {
 		'ev'     => '+0.33',
 		'rotate' => $opt['rotate'],
 	));
-
 
 echo '
 <form name="editForm">'.
