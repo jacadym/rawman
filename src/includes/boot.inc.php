@@ -43,7 +43,12 @@ function rawman_elem($pic) {
 
 function rawman_filename($path) {
 	// basename without extension
-	return basename(substr($path, 0, strpos($path, '.')));
+	if ($pos = strrpos($path, '.')) {
+		return basename(substr($path, 0, $pos));
+	}
+	else {
+		return basename($path);
+	}
 }
 
 function rawman_getrawdir($pic) {
@@ -114,7 +119,7 @@ function rawman_readdir($dir, $ereg, $fullpath = false) {
 	$dh = opendir($dir);
 	while ($item = readdir($dh)) {
 		$fname = $dir . $item;
-		if (is_file($fname) && ereg($ereg, $item)) {
+		if (ereg($ereg, $item)) {
 			$items[] = $fullpath ? $fname : $item;
 		}
 	}
@@ -212,10 +217,11 @@ function rawman_readexif($pic) {
 		'FocusDistance' => 'Focus',
 	);
 
-	$out = array();
-	$ret = array();
-	$raw = rawman_getrawfile($pic);
-	exec(bin_exif ." -S -d '%Y-%m-%d %H:%M:%S' -".join(' -', array_keys($arr_exif))." $raw", $out);
+	$out  = array();
+	$ret  = array();
+	$raw  = rawman_getrawfile($pic);
+	$exec = bin_exif ." -S -d '%Y-%m-%d %H:%M:%S' -".join(' -', array_keys($arr_exif))." $raw";
+	error_log(sprintf("ReadExif:\n%s\nReturn:%s\n", $exec, exec($exec, $out)), 3, '/tmp/rawman.log');
 	foreach ($out as $line) {
 		list($_h, $_d) = split(': ', $line);
 		$ret[] = $arr_exif[trim($_h)] .': '. $_d;
