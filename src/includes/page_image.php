@@ -15,7 +15,7 @@ function rawman_genimage($pic) {
 	$par = rawman_mkdir(array($dir, 'param')) . $pic .'.txt';
 	$img = rawman_mkdir(array($dir, 'image', 'orig')) . $pic .'.jpg';
 	$opt = rawman_convparams($par, array('rating' => 0, 'coloring' => 'none'));
-	$raw = rawman_getrawdir($pic) . basename($pic, '.jpg') .'.nef';
+	$raw = rawman_getrawfile($pic);
 
 	$opt['dcraw']    = preg_replace('/\-h/', '', $opt['dcraw']);
 	$opt['dcraw']   .= ' -q 3';
@@ -65,8 +65,8 @@ function rawman_editimage($conv, $pic) {
 		}
 		$opt['cnvpre']  .= ' -shave 4x4 -gamma '. RetDefault($par_gamma, '1.15');
 		$opt['cnvpost'] .= ' -unsharp 3x3+0.3+0';
-
-		rawman_createimage(rawman_getrawdir($pic) . basename($pic, '.jpg') .'.nef', $img, $opt);
+		$raw = rawman_getrawfile($pic);
+		rawman_createimage($raw, $img, $opt);
 	}
 	rawman_showpicture($img);
 }
@@ -205,20 +205,21 @@ function _rm_page_image($pic, $params) {
 		$imagedir = rawman_mkdir(array($monthdir, 'image', IMAGE_SIZE));
 		$paramdir = rawman_mkdir(array($monthdir, 'param'));
 
-		$image    = $imagedir . $pic;
-		$opt      = array(
+		$imagefile = $imagedir . $pic;
+		$opt       = array(
 			'year'   => '20'.$year,
 			'number' => $number
 		);
-		if (!is_file($image)) {
-			$rawdir = rawman_getrawdir($pic);
+		if (!is_file($imagefile)) {
+			$filename = rawman_filename($pic);
+			$rawfile  = rawman_getrawfile($pic);
 			rawman_createimage(
-				$rawdir . basename($pic, '.jpg') .'.nef',
-				$image,
-				rawman_convparams($paramdir . basename($pic, '.jpg') .'.txt', $opt)
+				$rawfile,
+				$imagefile,
+				rawman_convparams($paramdir . $filename .'.txt', $opt)
 			);
 		}
-		rawman_showpicture($image);
+		rawman_showpicture($imagefile);
 	}
 	else {
 		$act = $pic;

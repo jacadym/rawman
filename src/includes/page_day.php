@@ -4,9 +4,9 @@ function rawman_listday(&$raws) {
 	$count = 0;
 	foreach ($raws as $udir => $arr)
 	foreach ($arr as $raw) {
-		$pic   = basename($raw, '.nef');
-		$el    = rawman_elem($pic);
-		$opt   = rawman_convparams(
+		$pic = rawman_filename($raw);
+		$el  = rawman_elem($pic);
+		$opt = rawman_convparams(
 			rawman_mkdir(array(rawman_getpicdir($pic), 'param')) . $pic .'.txt',
 			array('rating' => 0, 'coloring' => 'none')
 		);
@@ -37,11 +37,11 @@ function _rm_page_day($page) {
 	$year  = substr($page, 0, 2);
 	$month = substr($page, 2, 2);
 
-	$ereg = $page.'_[0-9]{5}';
+	$ereg = $page.'_[0-9]{5}\.';
 	$raws  = array();
 	foreach(rmconf('rawdir') as $udir => $dir) {
 		if (!is_dir($dir)) continue;
-		$raws[$udir] = rawman_readdir(sprintf('%s20%02d_%02d/', $dir, $year, $month), $ereg.'.nef');
+		$raws[$udir] = rawman_readdir(sprintf('%s20%02d_%02d/', $dir, $year, $month), $ereg);
 	}
 
 	echo rawman_html('day', array(

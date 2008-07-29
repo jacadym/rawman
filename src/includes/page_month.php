@@ -4,8 +4,11 @@ function rawman_listmonth(&$raws) {
 	$days = array();
 	foreach ($raws as $raw) {
 		if (preg_match('/(\d{4})(\d{2})_(\d{5})/', $raw, $m)) {
-			if (!isset($days[$m[1].$m[2]])) $days[$m[1].$m[2]] = array($m[2], 0);
-			$days[$m[1].$m[2]][1]++;
+			$idx = $m[1].$m[2];
+			if (!isset($days[$idx])) {
+				$days[$idx] = array('day' => $m[2], 'count' => 0);
+			}
+			$days[$idx]['count']++;
 		}
 	}
 	ksort($days);
@@ -15,7 +18,7 @@ function rawman_listmonth(&$raws) {
 			'<div style="float: left;">'.
 			'<a href="'.RM_WEB.'/index.php/day/all/'.$day.'">'.
 			'<img src="'.RM_WEB.'/index.php/stack/all/'.$day.'" border="0" /></a><br />'.
-			'Dzień: '.$data[0].', liczba zdjęć: '.$data[1].
+			'Dzień: '.$data['day'].', liczba zdjęć: '.$data['count'].
 			'</div>';
 		$item++;
 	}
@@ -42,11 +45,11 @@ function _rm_page_month($page) {
 	$year  = substr($page, 0, 2);
 	$month = substr($page, 2, 2);
 
-	$ereg  = '[0-9]{6}_[0-9]{5}';
+	$ereg  = '[0-9]{6}_[0-9]{5}\.';
 	$raws  = array();
 	foreach(rmconf('rawdir') as $udir => $dir) {
 		if (!is_dir($dir)) continue;
-		$raws = array_merge($raws, rawman_readdir(sprintf('%s20%02d_%02d/', $dir, $year, $month), $ereg.'.nef'));
+		$raws = array_merge($raws, rawman_readdir(sprintf('%s20%02d_%02d/', $dir, $year, $month), $ereg));
 	}
 
 	echo rawman_html('month', array(

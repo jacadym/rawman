@@ -7,6 +7,7 @@
 <script type="text/javascript">
 // <![CDATA[
 var imgID;
+var dirID;
 var imgDir = '@@imgdir@@/';
 
 function getFormParams() {
@@ -19,7 +20,7 @@ function getFormParams() {
 	return parEv + ',' + parBal + ',' + parBri + ',' + parGam + ',' + parRot + ',' + parNoi;
 }
 
-function selImg(imgName, dirId) {
+function selImg(imgName, dir) {
 
 	Element.hide('image-box');
 
@@ -31,7 +32,7 @@ function selImg(imgName, dirId) {
 		Element.show('bigimage');
 	}
 
-	var imgsrc = imgDir + dirId + '/' + imgName + '.jpg';
+	var imgsrc = imgDir + dir + '/' + imgName + '.jpg';
 	var select = document.getElementsByClassName('select');
 	select.each(function(el) { if (Element.hasClassName(el, 'thumbnail')) Element.removeClassName(el, 'select'); });
 	Element.addClassName($('thumb-' + imgName), 'select');
@@ -41,7 +42,8 @@ function selImg(imgName, dirId) {
 		$('bigimage').src = imgsrc;
 		new Effect.Appear('image-box', { duration: 0.5, queue: 'end' });
 		imgID = imgName;
-		rmSendReq(dirId + '/info');
+		dirID = dir;
+		rmSendReq(dirID + '/info');
 	}
 	imgPreloader.src = imgsrc;
 }
@@ -86,9 +88,9 @@ function rate(obj) {
 	}
 	if (rate == sel) rate = 0; else rate = sel;
 	if (rate > 0) {
-		$A(lis).slice(0, rate).each(function(el) {Element.addClassName(el, 'select');});
+		$A(lis).slice(0, rate).each(function(el) { Element.addClassName(el, 'select'); });
 	}
-	rmSendReq('rate/' + rate);
+	rmSendReq(dirID + '/rate/' + rate);
 }
 
 function color(obj) {
@@ -97,10 +99,10 @@ function color(obj) {
 		if (lis[i] == obj) {
 			if (Element.hasClassName(lis[i], 'select')) {
 				Element.removeClassName(lis[i], 'select');
-				rmSendReq('color/none');
+				rmSendReq(dirID + '/color/none');
 			}
 			else {
-				rmSendReq('color/' + lis[i].className);
+				rmSendReq(dirID + '/color/' + lis[i].className);
 				Element.addClassName(lis[i], 'select');
 			}
 		}

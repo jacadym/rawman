@@ -31,10 +31,19 @@ function rawman_createstack($raw, $stack, $opt) {
 		'-background none -flatten '.
 		'-depth 8 -colors 256 -quality 80';
 
-	exec(sprintf('%s -c %s %s | %s - %s %s %s',
-		bin_dcraw, $opt['dcraw'], $raw,
-		bin_convert, $opt['cnvpre'], $opt['cnvpost'], $stack
-	));
+	$info = pathinfo($raw);
+	if ($info['extension'] == 'jpg') {
+		$exec = sprintf('%s %s %s %s %s',
+			bin_convert, $raw, $opt['cnvpre'], $opt['cnvpost'], $stack
+		);
+	}
+	else {
+		$exec = sprintf('%s -c %s %s | %s - %s %s %s',
+			bin_dcraw, $opt['dcraw'], $raw,
+			bin_convert, $opt['cnvpre'], $opt['cnvpost'], $stack
+		);
+	}
+	error_log(sprintf("CreateStack:\n%s\nReturn:%s\n", $exec, exec($exec)), 3, '/tmp/rawman.log');
 }
 
 function rawman_createthumb($raw, $thumb, $opt) {
@@ -48,10 +57,19 @@ function rawman_createthumb($raw, $thumb, $opt) {
 	$opt['cnvpre']  .= ' -size 200x200 -thumbnail "110x90>"';
 	$opt['cnvpost'] .= ' -depth 8 -colors 256 -quality 80';
 
-	exec(sprintf('%s -c %s %s | %s - %s %s %s',
-		bin_dcraw, $opt['dcraw'], $raw,
-		bin_convert, $opt['cnvpre'], $opt['cnvpost'], $thumb
-	));
+	$info = pathinfo($raw);
+	if ($info['extension'] == 'jpg') {
+		$exec = sprintf('%s %s %s %s %s',
+			bin_convert, $raw, $opt['cnvpre'], $opt['cnvpost'], $thumb
+		);
+	}
+	else {
+		$exec = sprintf('%s -c %s %s | %s - %s %s %s',
+			bin_dcraw, $opt['dcraw'], $raw,
+			bin_convert, $opt['cnvpre'], $opt['cnvpost'], $thumb
+		);
+	}
+	error_log(sprintf("CreateThumb:\n%s\nReturn:%s\n", $exec, exec($exec)), 3, '/tmp/rawman.log');
 }
 
 function rawman_createimage($raw, $image, $opt) {
@@ -75,17 +93,19 @@ function rawman_createimage($raw, $image, $opt) {
 }
 
 function rawman_createjpg($raw, $image, $opt) {
-	error_log(sprintf("%s -c %s %s | %s - %s %s %s\n",
-		bin_dcraw, $opt['dcraw'], $raw,
-		bin_convert, $opt['cnvpre'], $opt['cnvpost'], $image
-	),
-		3,
-		'/tmp/rawman.log'
-	);
-	exec(sprintf('%s -c %s %s | %s - %s %s %s',
-		bin_dcraw, $opt['dcraw'], $raw,
-		bin_convert, $opt['cnvpre'], $opt['cnvpost'], $image
-	));
+	$info = pathinfo($raw);
+	if ($info['extension'] == 'jpg') {
+		$exec = sprintf('%s %s %s %s %s',
+			bin_convert, $raw, $opt['cnvpre'], $opt['cnvpost'], $image
+		);
+	}
+	else {
+		$exec = sprintf('%s -c %s %s | %s - %s %s %s',
+			bin_dcraw, $opt['dcraw'], $raw,
+			bin_convert, $opt['cnvpre'], $opt['cnvpost'], $image
+		);
+	}
+	error_log(sprintf("CreateJPG:\n%s\nReturn:%s\n", $exec, exec($exec)), 3, '/tmp/rawman.log');
 }
 
 ?>

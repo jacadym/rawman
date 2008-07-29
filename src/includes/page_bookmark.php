@@ -13,9 +13,9 @@ function rawman_listbookmark() {
 	$count = 0;
 	if (is_array($_SESSION['bookmark'])) {
 		foreach ($_SESSION['bookmark'] as $img => $udir) {
-			$pic   = basename($img, '.nef');
-			$el    = rawman_elem($pic);
-			$opt   = rawman_convparams(
+			$pic = rawman_filename($img);
+			$el  = rawman_elem($pic);
+			$opt = rawman_convparams(
 				rawman_mkdir(array(rawman_getpicdir($pic), 'param')) . $pic .'.txt',
 				array('rating' => 0, 'coloring' => 'none')
 			);

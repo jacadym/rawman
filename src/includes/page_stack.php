@@ -1,39 +1,46 @@
 <?php
 
 function _rm_page_stack($page) {
-	$stack = '';
-
 	$pagedir  = rawman_getpicdir($page);
 	$stackdir = rawman_mkdir(array($pagedir, 'stack'));
-	$paramdir = rawman_mkdir(array($pagedir, 'param'));
 
 	if (strlen($page) == 4) {
-		// Miesięczna
+		// Month
 		$ereg = '[0-9]{6}_[0-9]{5}';
 	}
 	else {
-		// Dziennna
+		// Day
 		$ereg = $page.'_[0-9]{5}';
 	}	
 	
-	$items = rawman_readdir($stackdir, $ereg.'.png');
+	$items = rawman_readdir($stackdir, $ereg.'.png', true);
 	if (count($items)) {
-		$stack = basename($items[rand(0, count($items) - 1)], '.png');
+		// Exists
+		$stackfile = $items[rand(0, count($items) - 1)];
 	}
 	else {
-		$rawdir = rawman_getrawdir($page);
-		$raws   = rawman_readdir($rawdir, $ereg.'.nef');
+		// Create stack file
+		$year  = substr($page, 0, 2);
+		$month = substr($page, 2, 2);
+		$raws  = array();
+		foreach(rmconf('rawdir') as $udir => $dir) {
+			if (!is_dir($dir)) continue;
+			$raws = array_merge($raws, rawman_readdir(sprintf('%s20%02d_%02d/', $dir, $year, $month), $ereg, true));
+		}
 		if (count($raws)) {
-			// losujemy
-			$stack = basename($raws[rand(0, count($raws) - 1)], '.nef');
+			// Random
+			$paramdir  = rawman_mkdir(array($pagedir, 'param'));
+			$rawfile   = $raws[rand(0, count($raws) - 1)];
+			$filename  = rawman_filename($rawfile);
+			$stackfile = $stackdir . $filename . '.png';
 			rawman_createstack(
-				$rawdir . $stack .'.nef',
-				$stackdir . $stack .'.png',
-				rawman_convparams($paramdir . $stack .'.txt')
+				$rawfile,
+				$stackfile,
+				rawman_convparams($paramdir . $filename .'.txt')
 			);
 		}
 	}
-	rawman_showpicture($stackdir . $stack .'.png');
+	rawman_showpicture($stackfile);
 }
 
 ?>

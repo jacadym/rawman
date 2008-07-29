@@ -41,6 +41,11 @@ function rawman_elem($pic) {
 	return $elem;
 }
 
+function rawman_filename($path) {
+	// basename without extension
+	return basename(substr($path, 0, strpos($path, '.')));
+}
+
 function rawman_getrawdir($pic) {
 	$dirs = rmconf('rawdir');
 	$el   = rawman_elem($pic);
@@ -49,6 +54,18 @@ function rawman_getrawdir($pic) {
 
 function rawman_getpicdir($pic) {
 	return sprintf('%s20%02d_%02d', rmconf('picdir'), substr($pic, 0, 2), substr($pic, 2, 2));
+}
+
+function rawman_getrawfile($pic) {
+	$rwafile  = '';
+	$filename = rawman_filename($pic);
+	$rawdir   = rawman_getrawdir($pic);
+	$ereg     = $filename .'\.';
+	$files    = rawman_readdir($rawdir, $ereg, true);
+	if (count($files)) {
+		$rawfile = array_shift($files);
+	}
+	return $rawfile;
 }
 
 function rawman_date($pic) {
@@ -91,12 +108,15 @@ function rawman_mkdir($subdirs) {
 	return $dir;
 }
 
-function rawman_readdir($dir, $ereg) {
+function rawman_readdir($dir, $ereg, $fullpath = false) {
 	$items = array();
 	if (!is_dir($dir)) return $items;
 	$dh = opendir($dir);
 	while ($item = readdir($dh)) {
-		if (ereg($ereg, $item)) $items[] = $item;
+		$fname = $dir . $item;
+		if (is_file($fname) && ereg($ereg, $item)) {
+			$items[] = $fullpath ? $fname : $item;
+		}
 	}
 	closedir($dh);
 	sort($items);
@@ -194,8 +214,8 @@ function rawman_readexif($pic) {
 
 	$out = array();
 	$ret = array();
-	$raw = rawman_getrawdir($pic) . basename($pic, '.jpg') .'.nef';
-	exec("exiftool -S -d '%Y-%m-%d %H:%M:%S' -".join(' -', array_keys($arr_exif))." $raw", $out);
+	$raw = rawman_getrawfile($pic);
+	exec(bin_exif ." -S -d '%Y-%m-%d %H:%M:%S' -".join(' -', array_keys($arr_exif))." $raw", $out);
 	foreach ($out as $line) {
 		list($_h, $_d) = split(': ', $line);
 		$ret[] = $arr_exif[trim($_h)] .': '. $_d;
