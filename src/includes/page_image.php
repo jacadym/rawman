@@ -3,7 +3,7 @@
 function rawman_bookmark($pic, $act = 'add') {
 	if (!isset($_SESSION['bookmark'])) $_SESSION['bookmark'] = array();
 	if ($act == 'add') {
-		$_SESSION['bookmark'][$pic] = 1;
+		$_SESSION['bookmark'][$pic] = rmconf('elem-dir');
 	}
 	elseif ($act == 'del') {
 		unset($_SESSION['bookmark'][$pic]);
@@ -11,12 +11,11 @@ function rawman_bookmark($pic, $act = 'add') {
 }
 
 function rawman_genimage($pic) {
-	$el  = rawman_elem($pic);
-		
-	$par = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'param')) . $pic .'.txt';
-	$img = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'image', 'orig')) . $pic .'.jpg';
+	$dir = rawman_getpicdir($pic);
+	$par = rawman_mkdir(array($dir, 'param')) . $pic .'.txt';
+	$img = rawman_mkdir(array($dir, 'image', 'orig')) . $pic .'.jpg';
 	$opt = rawman_convparams($par, array('rating' => 0, 'coloring' => 'none'));
-	$raw = RM_RAW .'20'.$el['year'].'_'.$el['month'].'/' . basename($pic, '.jpg') .'.nef';
+	$raw = rawman_getrawdir($pic) . basename($pic, '.jpg') .'.nef';
 
 	$opt['dcraw']    = preg_replace('/\-h/', '', $opt['dcraw']);
 	$opt['dcraw']   .= ' -q 3';
@@ -26,8 +25,8 @@ function rawman_genimage($pic) {
 }
 
 function rawman_colorimage($pic, $color) {
-	$el  = rawman_elem($pic);
-	$par = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'param')) . $pic .'.txt';
+	$dir = rawman_getpicdir($pic);
+	$par = rawman_mkdir(array($dir, 'param')) . $pic .'.txt';
 	$opt = rawman_convparams($par);
 	$opt['coloring'] = $color;
 	@unlink($par);
@@ -35,9 +34,8 @@ function rawman_colorimage($pic, $color) {
 }
 
 function rawman_rateimage($pic, $rate) {
-	$el  = rawman_elem($pic);
-	$dir = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'param'));
-	$par = $dir . $pic .'.txt';
+	$dir = rawman_getpicdir($pic);
+	$par = rawman_mkdir(array($dir, 'param')) . $pic .'.txt';
 	$opt = rawman_convparams($par);
 	$opt['rating'] = $rate;
 	@unlink($par);
@@ -46,7 +44,8 @@ function rawman_rateimage($pic, $rate) {
 
 function rawman_editimage($conv, $pic) {
 	$el  = rawman_elem($pic);
-	$img = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'image', IMAGE_SIZE)) . $pic .','. $conv .'.jpg';
+	$dir = rawman_getpicdir($pic);
+	$img = rawman_mkdir(array($dir, 'image', IMAGE_SIZE)) . $pic .','. $conv .'.jpg';
 	$opt = array(
 		'year'   => '20'.$el['year'],
 		'number' => $el['number']
@@ -67,17 +66,17 @@ function rawman_editimage($conv, $pic) {
 		$opt['cnvpre']  .= ' -shave 4x4 -gamma '. RetDefault($par_gamma, '1.15');
 		$opt['cnvpost'] .= ' -unsharp 3x3+0.3+0';
 
-		rawman_createimage(RM_RAW . '20'.$el['year'].'_'.$el['month'].'/' . basename($pic, '.jpg') .'.nef', $img, $opt);
+		rawman_createimage(rawman_getrawdir($pic) . basename($pic, '.jpg') .'.nef', $img, $opt);
 	}
 	rawman_showpicture($img);
 }
 
 function rawman_applyimage($conv, $pic) {
 
-	$el  = rawman_elem($pic);
-	$img = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'image', IMAGE_SIZE)) . $pic .'.jpg';
-	$thu = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'thumb')) . $pic .'.png';
-	$par = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'param')) . $pic .'.txt';
+	$dir = rawman_getpicdir($pic);
+	$img = rawman_mkdir(array($dir, 'image', IMAGE_SIZE)) . $pic .'.jpg';
+	$thu = rawman_mkdir(array($dir, 'thumb')) . $pic .'.png';
+	$par = rawman_mkdir(array($dir, 'param')) . $pic .'.txt';
 	$opt = rawman_convparams($par);
 
 	@unlink($par);
@@ -98,24 +97,24 @@ function rawman_applyimage($conv, $pic) {
 }
 
 function rawman_infobox($pic) {
-	$el  = rawman_elem($pic);
-	$par = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'param')) . $pic .'.txt';
-	$img = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'image', 'orig')) . $pic .'.jpg';
+	$dir = rawman_getpicdir($pic);
+	$par = rawman_mkdir(array($dir, 'param')) . $pic .'.txt';
+	$img = rawman_mkdir(array($dir, 'image', 'orig')) . $pic .'.jpg';
 	$opt = rawman_convparams($par, array('rating' => 0, 'coloring' => 'none'));
 
 	echo
-		'&raquo; <a onclick="rmSendReq(\'box\')">Edytuj zdjęcie</a> &laquo;'.
+		'&raquo; <a onclick="rmSendReq(\''.rmconf('elem-dir').'/box\')">Edytuj zdjęcie</a> &laquo;'.
 		'<br />'.
 		(isset($_SESSION['bookmark'][$pic]) ?
-			sprintf('&raquo; <a onclick="rmSendReq(\'del\')">Jest w ulubionych (%d) - Usuń</a> &laquo;',
+			sprintf('&raquo; <a onclick="rmSendReq(\''.rmconf('elem-dir').'/del\')">Jest w ulubionych (%d) - Usuń</a> &laquo;',
 				count($_SESSION['bookmark'])
 			)
 		:
-			'&raquo; <a onclick="rmSendReq(\'add\')">Dodaj do ulubionych</a> &laquo;'
+			'&raquo; <a onclick="rmSendReq(\''.rmconf('elem-dir').'/add\')">Dodaj do ulubionych</a> &laquo;'
 		).
 		RetIf(!is_file($img),
 			'<br />'.
-			'&raquo; <a onclick="rmSendReq(\'gen\')">Wygeneruj JPG</a> &laquo;'
+			'&raquo; <a onclick="rmSendReq(\''.rmconf('elem-dir').'/gen\')">Wygeneruj JPG</a> &laquo;'
 		).
 		'<br /><br />'.
 		rawman_coloring($opt['coloring'], true).
@@ -127,8 +126,7 @@ function rawman_infobox($pic) {
 
 function rawman_editbox($pic) {
 	// Reading params and settting form fields
-	$el  = rawman_elem($pic);
-	$par = rawman_mkdir(array(RM_PIC .'20'.$el['year'].'_'.$el['month'], 'param')) . $pic .'.txt';
+	$par = rawman_mkdir(array(rawman_getpicdir($pic), 'param')) . $pic .'.txt';
 	$opt = rawman_convparams($par, array(
 		'rating'   => 0,
 		'coloring' => 'none',
@@ -190,7 +188,7 @@ echo '
 	rawman_rotate($opt['rotate'], true).
 '<p style="clear:both;"></p>'.
 CreateButton('preview', 'View', 'onclick="editImg()"').
-CreateButton('cancel', 'Cancel', 'onclick="rmSendReq(\'info\')"').
+CreateButton('cancel', 'Cancel', 'onclick="rmSendReq(\''.rmconf('elem-dir').'/info\')"').
 CreateButton('apply', 'Apply', 'onclick="applyImg()"').
 '</form>';
 }
@@ -203,7 +201,7 @@ function _rm_page_image($pic, $params) {
 		$day    = $match[3];
 		$number = $match[4];
 		
-		$monthdir = RM_PIC .'20'.$year.'_'.$month;
+		$monthdir = rawman_getpicdir($pic);
 		$imagedir = rawman_mkdir(array($monthdir, 'image', IMAGE_SIZE));
 		$paramdir = rawman_mkdir(array($monthdir, 'param'));
 
@@ -213,7 +211,7 @@ function _rm_page_image($pic, $params) {
 			'number' => $number
 		);
 		if (!is_file($image)) {
-			$rawdir = RM_RAW . '20'.$year.'_'.$month.'/';
+			$rawdir = rawman_getrawdir($pic);
 			rawman_createimage(
 				$rawdir . basename($pic, '.jpg') .'.nef',
 				$image,

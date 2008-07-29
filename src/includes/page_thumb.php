@@ -8,7 +8,7 @@ function _rm_page_thumb($pic) {
 		$day    = $match[3];
 		$number = $match[4];
 		
-		$monthdir = RM_PIC .'20'.$year.'_'.$month;
+		$monthdir = rawman_getpicdir($pic);
 		$thumbdir = rawman_mkdir(array($monthdir, 'thumb'));
 		$paramdir = rawman_mkdir(array($monthdir, 'param'));
 
@@ -18,7 +18,7 @@ function _rm_page_thumb($pic) {
 			'number' => $number
 		);
 		if (!is_file($thumb)) {
-			$rawdir = RM_RAW . '20'.$year.'_'.$month.'/';
+			$rawdir = rawman_getrawdir($pic);
 			rawman_createthumb(
 				$rawdir . basename($pic, '.png') .'.nef',
 				$thumb,

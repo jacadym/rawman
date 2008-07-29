@@ -54,34 +54,6 @@ function rawman_createthumb($raw, $thumb, $opt) {
 	));
 }
 
-function rawman_createthumb_prev($raw, $thumb, $opt) {
-	$annotate = rawman_replace(THUMB_ANN, array(
-		'year'   => isset($opt['year']) ? $opt['year'] : date('Y'),
-		'number' => sprintf('%04d', $opt['number'])
-	));
-	/*
-	** Others
-	*/
-	$opt['cnvpre']  .= ' -thumbnail "120x>"';
-	$opt['cnvpost'] .= ' -extent "120x80" -background white -gravity center -extent "128x100+0+4"';
-
-	if (!empty($annotate)) {
-		$opt['cnvpost'] .=
-		' -pointsize 11 -gravity south -annotate 0 "'.$annotate.'"';
-	}
-	$opt['cnvpost'] .=
-		' -bordercolor grey60 -border 1'.
-		' -background none'.
-		' -background black \( +clone -shadow 60x4+4+4 \) +swap'.
-		' -background none -flatten'.
-		' -depth 8 -colors 256 -quality 80';
-
-	exec(sprintf('%s -c %s %s | %s - %s %s %s',
-		bin_dcraw, $opt['dcraw'], $raw,
-		bin_convert, $opt['cnvpre'], $opt['cnvpost'], $thumb
-	));
-}
-
 function rawman_createimage($raw, $image, $opt) {
 	$annotate = rawman_replace(IMAGE_ANN, array(
 		'year'   => isset($opt['year']) ? $opt['year'] : date('Y'),

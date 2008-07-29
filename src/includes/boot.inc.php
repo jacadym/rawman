@@ -11,6 +11,12 @@ include('page_month.php');
 include('page_stack.php');
 include('page_thumb.php');
 
+function rmconf($key, $val = null) {
+	static $conf = array();
+	if (!is_null($val)) $conf[$key] = $val;
+	return $conf[$key];
+}
+
 function rawman_pathinfo($full = true) {
 	if (empty($_SERVER['PATH_INFO'])) return array();
 
@@ -33,6 +39,16 @@ function rawman_elem($pic) {
 		);
 	}
 	return $elem;
+}
+
+function rawman_getrawdir($pic) {
+	$dirs = rmconf('rawdir');
+	$el   = rawman_elem($pic);
+	return $dirs[rmconf('elem-dir')] .'20'. $el['year'] .'_'. $el['month'] .'/';
+}
+
+function rawman_getpicdir($pic) {
+	return sprintf('%s20%02d_%02d', rmconf('picdir'), substr($pic, 0, 2), substr($pic, 2, 2));
 }
 
 function rawman_date($pic) {
@@ -160,8 +176,6 @@ function rawman_rotate($rotate, $change = false) {
 }
 
 function rawman_readexif($pic) {
-	$el = rawman_elem($pic);
-
 	$arr_exif = array(
 		'Model' => 'Model',
 		'Lens' => 'Lens',
@@ -180,8 +194,8 @@ function rawman_readexif($pic) {
 
 	$out = array();
 	$ret = array();
-	$raw = RM_RAW . '20'. $el['year'] .'_'. $el['month'] .'/'. basename($pic, '.jpg') .'.nef';
-	exec(bin_exif." -S -d '%Y-%m-%d %H:%M:%S' -".join(' -', array_keys($arr_exif))." $raw", $out);
+	$raw = rawman_getrawdir($pic) . basename($pic, '.jpg') .'.nef';
+	exec("exiftool -S -d '%Y-%m-%d %H:%M:%S' -".join(' -', array_keys($arr_exif))." $raw", $out);
 	foreach ($out as $line) {
 		list($_h, $_d) = split(': ', $line);
 		$ret[] = $arr_exif[trim($_h)] .': '. $_d;

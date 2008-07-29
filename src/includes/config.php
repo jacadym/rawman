@@ -1,7 +1,11 @@
 <?php
 
-define('RM_RAW', '/opt/raw/');
-define('RM_PIC', '/opt/pic/');
+rmconf('rawdir', array(
+	'nef1' => '/opt/raw/NikonD70/',
+	'net2' => '/opt/raw/NikonD300/'
+));
+rmconf('picdir', '/opt/pic/');
+
 define('RM_WEB', 'http://'.$_SERVER['HTTP_HOST'].'/rawman');
 define('RM_TEM', dirname(dirname(__FILE__)).'/skins/');
 

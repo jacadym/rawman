@@ -13,8 +13,8 @@ function rawman_listmonth(&$raws) {
 	foreach ($days as $day => $data) {
 		$content .=
 			'<div style="float: left;">'.
-			'<a href="'.RM_WEB.'/index.php/day/'.$day.'">'.
-			'<img src="'.RM_WEB.'/index.php/stack/'.$day.'" border="0" /></a><br />'.
+			'<a href="'.RM_WEB.'/index.php/day/all/'.$day.'">'.
+			'<img src="'.RM_WEB.'/index.php/stack/all/'.$day.'" border="0" /></a><br />'.
 			'Dzień: '.$data[0].', liczba zdjęć: '.$data[1].
 			'</div>';
 		$item++;
@@ -41,9 +41,13 @@ function _rm_page_month($page) {
 
 	$year  = substr($page, 0, 2);
 	$month = substr($page, 2, 2);
-	$dir  = sprintf('%s20%02d_%02d/', RM_RAW, $year, $month);
-	$ereg = '[0-9]{6}_[0-9]{5}';
-	$raws = rawman_readdir($dir, $ereg.'.nef');
+
+	$ereg  = '[0-9]{6}_[0-9]{5}';
+	$raws  = array();
+	foreach(rmconf('rawdir') as $udir => $dir) {
+		if (!is_dir($dir)) continue;
+		$raws = array_merge($raws, rawman_readdir(sprintf('%s20%02d_%02d/', $dir, $year, $month), $ereg.'.nef'));
+	}
 
 	echo rawman_html('month', array(
 		'skins'   => RM_WEB .'/skins',
@@ -51,8 +55,8 @@ function _rm_page_month($page) {
 		'content' => rawman_listmonth($raws),
 		'header'  => $arr_month[$month] .' 20'. $year,
 		'footer'  =>
-			RetIf(!IsEmpty($_SESSION['bookmark']), sprintf('&raquo; <a href="'.RM_WEB.'/index.php/bookmark">%s</a> &laquo; ',
-				'Wyświetl ulubione'
+			RetIf(!IsEmpty($_SESSION['bookmark']), sprintf('&raquo; <a href="'.RM_WEB.'/index.php/bookmark/all">%s</a> (%d) &laquo; ',
+				'Wyświetl ulubione', count($_SESSION['bookmark'])
 			))
 	));
 }

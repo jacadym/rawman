@@ -19,7 +19,7 @@ function getFormParams() {
 	return parEv + ',' + parBal + ',' + parBri + ',' + parGam + ',' + parRot + ',' + parNoi;
 }
 
-function selImg(imgName) {
+function selImg(imgName, dirId) {
 
 	Element.hide('image-box');
 
@@ -31,7 +31,7 @@ function selImg(imgName) {
 		Element.show('bigimage');
 	}
 
-	var imgsrc = imgDir + imgName + '.jpg';
+	var imgsrc = imgDir + dirId + '/' + imgName + '.jpg';
 	var select = document.getElementsByClassName('select');
 	select.each(function(el) { if (Element.hasClassName(el, 'thumbnail')) Element.removeClassName(el, 'select'); });
 	Element.addClassName($('thumb-' + imgName), 'select');
@@ -41,7 +41,7 @@ function selImg(imgName) {
 		$('bigimage').src = imgsrc;
 		new Effect.Appear('image-box', { duration: 0.5, queue: 'end' });
 		imgID = imgName;
-		rmSendReq('info');
+		rmSendReq(dirId + '/info');
 	}
 	imgPreloader.src = imgsrc;
 }
