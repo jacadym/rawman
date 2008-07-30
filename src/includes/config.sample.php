@@ -1,9 +1,14 @@
 <?php
+/*
+** Sample config file
+*/
 
 rmconf('rawdir', array(
 	'nef1' => '/opt/raw/NikonD70/',
 	'net2' => '/opt/raw/NikonD300/'
 ));
+
+// Outputs
 rmconf('picdir', '/opt/pic/');
 
 define('RM_WEB', 'http://'.$_SERVER['HTTP_HOST'].'/rawman');

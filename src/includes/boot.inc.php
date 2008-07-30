@@ -1,8 +1,7 @@
 <?php
 
-include('config.php');
+include_conf();
 include('convert.inc.php');
-
 include('page_bookmark.php');
 include('page_day.php');
 include('page_image.php');
@@ -10,6 +9,14 @@ include('page_main.php');
 include('page_month.php');
 include('page_stack.php');
 include('page_thumb.php');
+
+function include_conf() {
+	foreach (array('config.'. strtolower($_SERVER['HTTP_HOST']) .'.php', 'config.default.php') as $file) {
+		if (@include($file)) {
+			break;
+		}
+	}
+}
 
 function rmconf($key, $val = null) {
 	static $conf = array();
@@ -115,18 +122,34 @@ function rawman_mkdir($subdirs) {
 }
 
 function rawman_readdir($dir, $ereg, $fullpath = false) {
-	$items = array();
-	if (!is_dir($dir)) return $items;
-	$dh = opendir($dir);
-	while ($item = readdir($dh)) {
-		$fname = $dir . $item;
-		if (ereg($ereg, $item)) {
-			$items[] = $fullpath ? $fname : $item;
+	static $items = array();
+
+	$out = array();
+	if (!is_dir($dir)) return $out;
+
+	if (isset($items[$dir])) {
+		foreach ($items[$dir] as $item) {
+			$fname = $dir . $item;
+			if (ereg($ereg, $item)) {
+				$out[] = $fullpath ? $fname : $item;
+			}
 		}
 	}
-	closedir($dh);
-	sort($items);
-	return $items;
+	else {
+		$dh = opendir($dir);
+		while ($item = readdir($dh)) {
+			if ($item == '.' || $item == '..') continue;
+			$items[$dir][] = $item;
+			$fname = $dir . $item;
+			if (ereg($ereg, $item)) {
+				$out[] = $fullpath ? $fname : $item;
+			}
+		}
+		closedir($dh);
+	}
+
+	sort ($out);
+	return $out;
 }
 
 function rawman_showpicture($filename) {

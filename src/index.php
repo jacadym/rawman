@@ -2,7 +2,7 @@
 /*
 ** RawManager v. 0.1.0
 */
-require_once('./includes/boot.inc.php');
+include('./includes/boot.inc.php');
 
 /*
   Photos:
